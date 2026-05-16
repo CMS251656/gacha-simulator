@@ -29,31 +29,31 @@ const star5Chars = [
     "开膛手杰克", "莫德雷德", "阿周那", "迦尔纳", "迷之女主角X", "布伦希尔德"
 ];
 
-// 概率配置（万分比）
-// 五星: 0.005% = 0.5/10000
-// 四星: 0.008% = 0.8/10000
-// 三星: 剩余
-const PROBABILITY = {
-    STAR5: 0.5,     // 万分之0.5 = 0.005%
-    STAR4: 0.8,     // 万分之0.8 = 0.008%
-    STAR3: 10000 - 0.5 - 0.8,  // 剩下的都是三星及以下
-    STAR2: 3500,    // 35% 用单独逻辑处理
-    STAR1: 5000     // 50%
+// 概率设定（分母100000，十万分之一精度）
+// 五星: 5/100000 = 0.005%
+// 四星: 8/100000 = 0.008%
+// 三星: 14987/100000 = 14.987%
+// 二星: 35000/100000 = 35%
+// 一星: 50000/100000 = 50%
+const PROB = {
+    STAR5_START: 0,
+    STAR5_END: 5,           // 0-4  → 五星 (5种)
+    STAR4_END: 13,          // 5-12 → 四星 (8种)
+    STAR3_END: 15000,       // 13-14999 → 三星 (14987种)
+    STAR2_END: 50000,       // 15000-49999 → 二星 (35000种)
+    // 50000-99999 → 一星 (50000种)
 };
 
-// 保底
-const PITY_5 = 330;      // 330抽保底五星
-const PITY_4 = 10;       // 10抽保底四星
+// 保底计数器
+let pityCount5 = 0;    // 距离上次五星的抽数
+let pityCount4 = 0;    // 距离上次四星及以上的抽数
 
-let state = {
-    totalPulls: 0,
-    pityCount5: 0,       // 距离上次五星的抽数
-    pityCount4: 0,       // 距离上次四星及以上的抽数
-    star5Count: 0,
-    star4Count: 0,
-    history: []
-};
+let totalPulls = 0;
+let star5Count = 0;
+let star4Count = 0;
+let history = [];
 
+// 获取随机角色名
 function getRandomChar(star) {
     let arr;
     if (star === 5) arr = star5Chars;
@@ -64,72 +64,67 @@ function getRandomChar(star) {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// 核心抽卡函数 - 每次独立随机
 function pullOneCard() {
     let starNum = null;
+    let isPity5 = false;
+    let isPity4 = false;
     
-    // 1. 检查五星保底
-    if (state.pityCount5 + 1 >= PITY_5) {
-        starNum = 5;
+    // 检查保底
+    if (pityCount5 + 1 >= 330) {
+        isPity5 = true;
     }
-    // 2. 检查四星保底
-    else if (state.pityCount4 + 1 >= PITY_4) {
-        // 保底四星，但仍有概率出五星
-        let rand = Math.random() * 10000;
-        if (rand < PROBABILITY.STAR5) {
+    if (pityCount4 + 1 >= 10) {
+        isPity4 = true;
+    }
+    
+    if (isPity5) {
+        // 330保底：强制出五星
+        starNum = 5;
+    } else if (isPity4) {
+        // 10抽保底：强制出四星或五星
+        // 随机决定是四星还是五星（按原概率比例）
+        let rand = Math.random() * 100000;
+        if (rand < PROB.STAR5_END) {
             starNum = 5;
         } else {
             starNum = 4;
         }
-    }
-    // 3. 正常抽卡
-    else {
-        let rand = Math.random() * 10000;
+    } else {
+        // 正常抽卡：随机生成数字
+        let rand = Math.random() * 100000;
         
-        if (rand < PROBABILITY.STAR5) {
+        if (rand < PROB.STAR5_END) {
             starNum = 5;
-        } else if (rand < PROBABILITY.STAR5 + PROBABILITY.STAR4) {
+        } else if (rand < PROB.STAR4_END) {
             starNum = 4;
-        } else if (rand < PROBABILITY.STAR5 + PROBABILITY.STAR4 + PROBABILITY.STAR3) {
-            // 三星及以下，需要进一步区分 1/2/3星
-            let subRand = Math.random() * 10000;
-            if (subRand < PROBABILITY.STAR1) {
-                starNum = 1;
-            } else if (subRand < PROBABILITY.STAR1 + PROBABILITY.STAR2) {
-                starNum = 2;
-            } else {
-                starNum = 3;
-            }
+        } else if (rand < PROB.STAR3_END) {
+            starNum = 3;
+        } else if (rand < PROB.STAR2_END) {
+            starNum = 2;
         } else {
-            // 剩下的是三星及以下
-            let subRand = Math.random() * 10000;
-            if (subRand < PROBABILITY.STAR1) {
-                starNum = 1;
-            } else if (subRand < PROBABILITY.STAR1 + PROBABILITY.STAR2) {
-                starNum = 2;
-            } else {
-                starNum = 3;
-            }
+            starNum = 1;
         }
     }
     
     // 获取角色名
     let charName = getRandomChar(starNum);
     
-    // 更新计数
+    // 更新计数器
     if (starNum === 5) {
-        state.star5Count++;
-        state.pityCount5 = 0;
-        state.pityCount4 = 0;
+        star5Count++;
+        pityCount5 = 0;
+        pityCount4 = 0;
     } else {
-        state.pityCount5++;
+        pityCount5++;
         if (starNum === 4) {
-            state.star4Count++;
-            state.pityCount4 = 0;
+            star4Count++;
+            pityCount4 = 0;
         } else {
-            state.pityCount4++;
+            pityCount4++;
         }
     }
-    state.totalPulls++;
+    totalPulls++;
     
     let starName = starNum === 5 ? "五星" : (starNum === 4 ? "四星" : (starNum === 3 ? "三星" : (starNum === 2 ? "二星" : "一星")));
     
@@ -141,20 +136,22 @@ function pullOneCard() {
     };
 }
 
+// 执行抽卡（1次或11次，每次独立计算）
 function performPull(count) {
     const results = [];
     
     for (let i = 0; i < count; i++) {
         const card = pullOneCard();
         results.push(card);
-        state.history.unshift(card);
-        if (state.history.length > 50) state.history.pop();
+        history.unshift(card);
+        if (history.length > 50) history.pop();
     }
     
     displayResults(results);
     updateUI();
     saveData();
     
+    // 五星闪光特效
     const hasFiveStar = results.some(c => c.star === 5);
     if (hasFiveStar) {
         const container = document.getElementById('resultArea');
@@ -163,6 +160,7 @@ function performPull(count) {
     }
 }
 
+// 显示抽卡结果
 function displayResults(cards) {
     const resultArea = document.getElementById('resultArea');
     resultArea.innerHTML = '';
@@ -191,15 +189,16 @@ function displayResults(cards) {
     updateHistoryList();
 }
 
+// 更新历史记录
 function updateHistoryList() {
     const historyList = document.getElementById('historyList');
-    if (state.history.length === 0) {
+    if (history.length === 0) {
         historyList.innerHTML = '<div class="history-empty">暂无记录</div>';
         return;
     }
     
     historyList.innerHTML = '';
-    state.history.slice(0, 50).forEach(record => {
+    history.slice(0, 50).forEach(record => {
         const item = document.createElement('div');
         let starClass = '';
         if (record.star === 5) starClass = 'history-star5';
@@ -219,14 +218,15 @@ function updateHistoryList() {
     });
 }
 
+// 更新UI
 function updateUI() {
-    document.getElementById('totalPulls').textContent = state.totalPulls;
-    document.getElementById('pityCount').textContent = state.pityCount5;
-    document.getElementById('star5Count').textContent = state.star5Count;
-    document.getElementById('star4Count').textContent = state.star4Count;
+    document.getElementById('totalPulls').textContent = totalPulls;
+    document.getElementById('pityCount').textContent = pityCount5;
+    document.getElementById('star5Count').textContent = star5Count;
+    document.getElementById('star4Count').textContent = star4Count;
     
     const pityElem = document.getElementById('pityCount');
-    if (state.pityCount5 >= 300) {
+    if (pityCount5 >= 300) {
         pityElem.style.color = '#ff6a3a';
         pityElem.style.textShadow = '0 0 5px #ff6a3a';
     } else {
@@ -235,39 +235,45 @@ function updateUI() {
     }
 }
 
+// 保存数据
 function saveData() {
     localStorage.setItem('gachaData', JSON.stringify({
-        totalPulls: state.totalPulls,
-        pityCount5: state.pityCount5,
-        pityCount4: state.pityCount4,
-        star5Count: state.star5Count,
-        star4Count: state.star4Count,
-        history: state.history.slice(0, 100)
+        totalPulls: totalPulls,
+        pityCount5: pityCount5,
+        pityCount4: pityCount4,
+        star5Count: star5Count,
+        star4Count: star4Count,
+        history: history.slice(0, 100)
     }));
 }
 
+// 加载数据
 function loadData() {
     const saved = localStorage.getItem('gachaData');
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
-            state = { ...state, ...parsed };
+            totalPulls = parsed.totalPulls || 0;
+            pityCount5 = parsed.pityCount5 || 0;
+            pityCount4 = parsed.pityCount4 || 0;
+            star5Count = parsed.star5Count || 0;
+            star4Count = parsed.star4Count || 0;
+            history = parsed.history || [];
             updateUI();
             updateHistoryList();
         } catch(e) {}
     }
 }
 
+// 重置数据
 function resetData() {
     if (confirm('确定要重置所有抽卡数据吗？这将清空你的记录！')) {
-        state = {
-            totalPulls: 0,
-            pityCount5: 0,
-            pityCount4: 0,
-            star5Count: 0,
-            star4Count: 0,
-            history: []
-        };
+        totalPulls = 0;
+        pityCount5 = 0;
+        pityCount4 = 0;
+        star5Count = 0;
+        star4Count = 0;
+        history = [];
         updateUI();
         updateHistoryList();
         document.getElementById('resultArea').innerHTML = '<div class="placeholder-text">数据已重置~</div>';
@@ -275,14 +281,17 @@ function resetData() {
     }
 }
 
+// 单抽
 function singlePull() {
     performPull(1);
 }
 
+// 十一连
 function elevenPull() {
     performPull(11);
 }
 
+// 绑定事件
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
     updateUI();

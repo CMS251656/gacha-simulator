@@ -36,16 +36,16 @@ const star5Chars = [
 
 // 抽卡配置
 // 五星概率 0.05% = 0.0005
-// 四星概率 1.42857% = 0.0142857 (约1/70)
-// 三星概率 13.52143% = 0.1352143
+// 四星概率 0.4% = 0.004
+// 三星概率 14.55% = 0.1455
 // 二星概率 35% = 0.35
 // 一星概率 50% = 0.50
 const RARITY = {
-    STAR1: { name: '一星', rate: 0.50, color: 'star1', starNum: 1 },       // 50%
-    STAR2: { name: '二星', rate: 0.35, color: 'star2', starNum: 2 },       // 35%
-    STAR3: { name: '三星', rate: 0.1352143, color: 'star3', starNum: 3 },  // 约13.52%
-    STAR4: { name: '四星', rate: 0.0142857, color: 'star4', starNum: 4 },  // 约1.42857% (1/70)
-    STAR5: { name: '五星', rate: 0.0005, color: 'star5', starNum: 5 }      // 0.05% (1/2000)
+    STAR1: { name: '一星', rate: 0.50, color: 'star1', starNum: 1 },      // 50%
+    STAR2: { name: '二星', rate: 0.35, color: 'star2', starNum: 2 },      // 35%
+    STAR3: { name: '三星', rate: 0.1455, color: 'star3', starNum: 3 },    // 14.55%
+    STAR4: { name: '四星', rate: 0.004, color: 'star4', starNum: 4 },     // 0.4%
+    STAR5: { name: '五星', rate: 0.0005, color: 'star5', starNum: 5 }     // 0.05%
 };
 
 const PITY_LIMIT = 330;  // 330抽保底

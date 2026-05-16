@@ -27,22 +27,25 @@ const star4Chars = [
     "酒吞童子【Caster】", "兰陵王"
 ];
 
-// 5星角色（注意：贞德后面加了(1)匹配你的图片）
+// 5星角色
 const star5Chars = [
     "阿尔托莉雅 潘德拉贡", "阿提拉", "吉尔伽美什", "诸葛孔明 【艾尔梅洛伊二世】",
     "费拉德三十", "贞德(1)", "俄里翁", "玉藻前", "冲田总司", "斯卡哈",
     "开膛手杰克", "莫德雷德", "阿周那", "迦尔纳", "迷之女主角X", "布伦希尔德"
 ];
 
-// 抽卡配置 - 概率调低一倍
-// 原来：五星0.6% 四星5.1% 三星24.3% 二星30% 一星40%
-// 现在：五星0.3% 四星2.55% 三星12.15% 二星35% 一星50% （总和100%）
+// 抽卡配置
+// 五星概率 0.05% = 0.0005
+// 四星概率 2.5%
+// 三星概率 12.45%
+// 二星概率 35%
+// 一星概率 50%
 const RARITY = {
-    STAR1: { name: '一星', rate: 0.50, color: 'star1', starNum: 1 },   // 50%
-    STAR2: { name: '二星', rate: 0.35, color: 'star2', starNum: 2 },   // 35%
-    STAR3: { name: '三星', rate: 0.1215, color: 'star3', starNum: 3 },  // 12.15%
-    STAR4: { name: '四星', rate: 0.0255, color: 'star4', starNum: 4 },  // 2.55%
-    STAR5: { name: '五星', rate: 0.003, color: 'star5', starNum: 5 }    // 0.3%
+    STAR1: { name: '一星', rate: 0.50, color: 'star1', starNum: 1 },    // 50%
+    STAR2: { name: '二星', rate: 0.35, color: 'star2', starNum: 2 },    // 35%
+    STAR3: { name: '三星', rate: 0.1245, color: 'star3', starNum: 3 },   // 12.45%
+    STAR4: { name: '四星', rate: 0.025, color: 'star4', starNum: 4 },    // 2.5%
+    STAR5: { name: '五星', rate: 0.0005, color: 'star5', starNum: 5 }    // 0.05%
 };
 
 const PITY_LIMIT = 330;  // 330抽保底
@@ -70,7 +73,7 @@ function getRandomCharByStar(star) {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// 抽一张卡
+// 抽一张卡（每一抽独立计算概率）
 function pullOneCard() {
     // 检查330保底
     let isGuarantee5 = (state.pityCount + 1 >= PITY_LIMIT);
@@ -95,7 +98,7 @@ function pullOneCard() {
         rarity = 'STAR5';
         starNum = 5;
     } else if (isGuarantee4) {
-        // 保底四星，但仍有概率出五星
+        // 保底四星，但仍有概率出五星（按比例）
         let rand = Math.random();
         let fiveRate = RARITY.STAR5.rate / (RARITY.STAR5.rate + RARITY.STAR4.rate);
         if (rand < fiveRate) {
@@ -150,12 +153,12 @@ function pullOneCard() {
     };
 }
 
-// 执行抽卡（单抽或十一连）
+// 执行抽卡（单抽或十一连）- 每一抽单独计算
 function performPull(count) {
     const results = [];
     
     for (let i = 0; i < count; i++) {
-        const card = pullOneCard();
+        const card = pullOneCard();  // 每一抽都独立调用，概率独立计算
         results.push(card);
         state.history.unshift(card);
         if (state.history.length > 50) state.history.pop();
@@ -171,6 +174,10 @@ function performPull(count) {
         const container = document.getElementById('resultArea');
         container.classList.add('flash-golden');
         setTimeout(() => container.classList.remove('flash-golden'), 600);
+        
+        // 五星特效：页面震动一下
+        document.body.style.animation = 'shake 0.3s ease';
+        setTimeout(() => document.body.style.animation = '', 300);
     }
 }
 
@@ -295,6 +302,25 @@ function singlePull() {
 function elevenPull() {
     performPull(11);
 }
+
+// 震动动画
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes shake {
+        0% { transform: translate(1px, 1px) rotate(0deg); }
+        10% { transform: translate(-1px, -2px) rotate(-1deg); }
+        20% { transform: translate(-3px, 0px) rotate(1deg); }
+        30% { transform: translate(3px, 2px) rotate(0deg); }
+        40% { transform: translate(1px, -1px) rotate(1deg); }
+        50% { transform: translate(-1px, 2px) rotate(-1deg); }
+        60% { transform: translate(-3px, 1px) rotate(0deg); }
+        70% { transform: translate(3px, 1px) rotate(-1deg); }
+        80% { transform: translate(-1px, -1px) rotate(1deg); }
+        90% { transform: translate(1px, 2px) rotate(0deg); }
+        100% { transform: translate(1px, -2px) rotate(-1deg); }
+    }
+`;
+document.head.appendChild(style);
 
 // 绑定事件
 document.addEventListener('DOMContentLoaded', () => {

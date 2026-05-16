@@ -27,20 +27,22 @@ const star4Chars = [
     "酒吞童子【Caster】", "兰陵王"
 ];
 
-// 5星角色
+// 5星角色（注意：贞德后面加了(1)匹配你的图片）
 const star5Chars = [
     "阿尔托莉雅 潘德拉贡", "阿提拉", "吉尔伽美什", "诸葛孔明 【艾尔梅洛伊二世】",
-    "费拉德三十", "贞德", "俄里翁", "玉藻前", "冲田总司", "斯卡哈",
+    "费拉德三十", "贞德(1)", "俄里翁", "玉藻前", "冲田总司", "斯卡哈",
     "开膛手杰克", "莫德雷德", "阿周那", "迦尔纳", "迷之女主角X", "布伦希尔德"
 ];
 
-// 抽卡配置
+// 抽卡配置 - 概率调低一倍
+// 原来：五星0.6% 四星5.1% 三星24.3% 二星30% 一星40%
+// 现在：五星0.3% 四星2.55% 三星12.15% 二星35% 一星50% （总和100%）
 const RARITY = {
-    STAR1: { name: '一星', rate: 0.4, color: 'star1', starNum: 1 },
-    STAR2: { name: '二星', rate: 0.3, color: 'star2', starNum: 2 },
-    STAR3: { name: '三星', rate: 0.243, color: 'star3', starNum: 3 },
-    STAR4: { name: '四星', rate: 0.051, color: 'star4', starNum: 4 },
-    STAR5: { name: '五星', rate: 0.006, color: 'star5', starNum: 5 }
+    STAR1: { name: '一星', rate: 0.50, color: 'star1', starNum: 1 },   // 50%
+    STAR2: { name: '二星', rate: 0.35, color: 'star2', starNum: 2 },   // 35%
+    STAR3: { name: '三星', rate: 0.1215, color: 'star3', starNum: 3 },  // 12.15%
+    STAR4: { name: '四星', rate: 0.0255, color: 'star4', starNum: 4 },  // 2.55%
+    STAR5: { name: '五星', rate: 0.003, color: 'star5', starNum: 5 }    // 0.3%
 };
 
 const PITY_LIMIT = 330;  // 330抽保底
@@ -105,7 +107,6 @@ function pullOneCard() {
         }
     } else {
         let rand = Math.random();
-        let cumulative = 0;
         
         if (rand < RARITY.STAR5.rate) {
             rarity = 'STAR5';
@@ -182,14 +183,12 @@ function displayResults(cards) {
         const cardDiv = document.createElement('div');
         cardDiv.className = `card card-${card.rarityKey.toLowerCase()}`;
         
-        // 构建图片路径（P文件夹，角色名.png）
         let imgPath = `P/${card.name}.png`;
         
-        // 星星显示
         let starDisplay = '★'.repeat(card.star);
         
         cardDiv.innerHTML = `
-            <img class="card-img" src="${imgPath}" alt="${card.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\' viewBox=\'0 0 80 80\'%3E%3Crect width=\'80\' height=\'80\' fill=\'%23333355\'/%3E%3Ctext x=\'40\' y=\'45\' text-anchor=\'middle\' fill=\'%23aaa\' font-size=\'12\'%3E?%3C/text%3E%3C/svg%3E'">
+            <img class="card-img" src="${imgPath}" alt="${card.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\' viewBox=\'0 0 80 80\'%3E%3Crect width=\'80\' height=\'80\' fill=\'%23333355\'/%3E%3Ctext x=\'40\' y=\'45\' text-anchor=\'middle\' fill=\'%23aaa\' font-size=\'12\'%3E%3C/text%3E%3C/svg%3E'">
             <div class="card-name">${card.name}</div>
             <div class="card-rarity">${starDisplay} ${card.starName}</div>
         `;

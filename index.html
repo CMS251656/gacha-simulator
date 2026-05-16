@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>FGO风格抽卡模拟器 - 330保底</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨ 从者召唤模拟器 ✨</h1>
+            <div class="stats">
+                <div class="stat-box">
+                    <span class="stat-label">累计抽数</span>
+                    <span class="stat-value" id="totalPulls">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">距离保底</span>
+                    <span class="stat-value" id="pityCount">0</span>
+                    <span class="stat-unit">/330</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">⭐五星数量</span>
+                    <span class="stat-value star5" id="star5Count">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">⭐⭐⭐⭐四星数量</span>
+                    <span class="stat-value star4" id="star4Count">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-panel">
+            <button class="pull-btn single" id="singlePull">✨ 单抽一次</button>
+            <button class="pull-btn eleven" id="elevenPull">🎲 十一连抽</button>
+            <button class="reset-btn" id="resetBtn">🔄 重置数据</button>
+        </div>
+
+        <div class="result-area" id="resultArea">
+            <div class="placeholder-text">点击按钮开始召唤从者~</div>
+        </div>
+
+        <div class="history-area">
+            <h3>📜 召唤记录 (最近50条)</h3>
+            <div class="history-list" id="historyList">
+                <div class="history-empty">暂无记录</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
